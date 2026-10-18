@@ -21,6 +21,10 @@ interface InputProps extends TextInputProps {
   clearButton?: boolean;
   ocrSuggestion?: string | null;
   onApplyOcrSuggestion?: (value: string) => void;
+  translateSuggestion?: string | null;
+  onApplyTranslateSuggestion?: (value: string) => void;
+  onTranslatePress?: () => void;
+  isTranslating?: boolean;
 }
 
 export function Input({
@@ -34,6 +38,10 @@ export function Input({
   clearButton = false,
   ocrSuggestion,
   onApplyOcrSuggestion,
+  translateSuggestion,
+  onApplyTranslateSuggestion,
+  onTranslatePress,
+  isTranslating = false,
   value,
   onChangeText,
   style,
@@ -46,8 +54,23 @@ export function Input({
     <View style={styles.container}>
       {label && (
         <View style={styles.labelContainer}>
-          <Text style={styles.label}>{label}</Text>
-          {required && <Text style={styles.requiredStar}> *</Text>}
+          <View style={styles.labelRowLeft}>
+            <Text style={styles.label}>{label}</Text>
+            {required && <Text style={styles.requiredStar}> *</Text>}
+          </View>
+          {onTranslatePress && (
+            <TouchableOpacity
+              onPress={onTranslatePress}
+              disabled={isTranslating}
+              style={styles.translateActionBtn}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="language" size={13} color={Colors.primary} />
+              <Text style={styles.translateActionText}>
+                {isTranslating ? 'Translating...' : 'Translate বাংলা ➔ EN'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
@@ -128,6 +151,34 @@ export function Input({
         </TouchableOpacity>
       )}
 
+      {/* Quick Translation Suggestion Pill */}
+      {Boolean(
+        translateSuggestion &&
+          translateSuggestion.trim() &&
+          value?.trim() !== translateSuggestion.trim()
+      ) && (
+        <TouchableOpacity
+          style={styles.translateChip}
+          onPress={() => {
+            if (onApplyTranslateSuggestion) {
+              onApplyTranslateSuggestion(translateSuggestion!.trim());
+            } else if (onChangeText) {
+              onChangeText(translateSuggestion!.trim());
+            }
+          }}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="language" size={13} color="#2563EB" />
+          <Text style={styles.translateChipLabel}>From বাংলা:</Text>
+          <Text style={styles.translateChipValue} numberOfLines={1}>
+            {translateSuggestion}
+          </Text>
+          <View style={styles.translateChipActionBadge}>
+            <Text style={styles.translateChipActionText}>+ Fill</Text>
+          </View>
+        </TouchableOpacity>
+      )}
+
       {error ? (
         <Text style={styles.errorText}>{error}</Text>
       ) : helperText ? (
@@ -140,6 +191,35 @@ export function Input({
 const styles = StyleSheet.create({
   container: {
     marginBottom: 16,
+  },
+  labelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  labelRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    flexWrap: 'wrap',
+  },
+  translateActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    marginLeft: 6,
+  },
+  translateActionText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#2563EB',
   },
   ocrChip: {
     flexDirection: 'row',
@@ -175,9 +255,39 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
   },
-  labelContainer: {
+  translateChip: {
     flexDirection: 'row',
-    marginBottom: 6,
+    alignItems: 'center',
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    borderRadius: 8,
+    paddingVertical: 5,
+    paddingHorizontal: 8,
+    marginTop: 6,
+    gap: 6,
+  },
+  translateChipLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#1D4ED8',
+  },
+  translateChipValue: {
+    flex: 1,
+    fontSize: 12,
+    color: Colors.text,
+    fontWeight: '500',
+  },
+  translateChipActionBadge: {
+    backgroundColor: '#2563EB',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  translateChipActionText: {
+    color: Colors.white,
+    fontSize: 11,
+    fontWeight: '700',
   },
   label: {
     fontSize: 14,

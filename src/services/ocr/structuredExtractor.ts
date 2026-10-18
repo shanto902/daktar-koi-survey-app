@@ -1,4 +1,5 @@
 import { StructuredExtractedData } from '../../types';
+import { transliterateBanglaToEnglish } from '../translator/nameTranslator';
 
 /**
  * Converts Bengali digits to standard Western Arabic numerals
@@ -270,6 +271,21 @@ export function extractStructuredDataFromText(rawText: string): StructuredExtrac
     const feeNum = parseInt(feeMatch[1], 10);
     if (!isNaN(feeNum) && feeNum >= 100 && feeNum <= 5000) {
       result.consultationFee = feeNum;
+    }
+  }
+
+  // 9. Auto-translate/transliterate Bangla names to English if English was not explicitly found
+  if (result.doctorNameBn && !result.doctorNameEn) {
+    const translatedDoc = transliterateBanglaToEnglish(result.doctorNameBn);
+    if (translatedDoc) {
+      result.doctorNameEn = translatedDoc;
+    }
+  }
+
+  if (result.facilityNameBn && !result.facilityNameEn) {
+    const translatedFacility = transliterateBanglaToEnglish(result.facilityNameBn);
+    if (translatedFacility) {
+      result.facilityNameEn = translatedFacility;
     }
   }
 

@@ -12,11 +12,17 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EAS_BUILD_DISABLE_EXPO_DOCTOR_STEP": "1"
       }
     },
     "production": {
       "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "EAS_BUILD_DISABLE_EXPO_DOCTOR_STEP": "1"
       }
     }
   },
@@ -24,4 +30,3 @@
     "production": {}
   }
 }
-

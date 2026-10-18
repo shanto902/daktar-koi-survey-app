@@ -30,6 +30,10 @@ import { generateUUID } from '../../../src/utils/uuid';
 import { fileStorage } from '../../../src/services/storage/fileStorage';
 import { extractStructuredDataFromText } from '../../../src/services/ocr/structuredExtractor';
 import {
+  translateBanglaToEnglish,
+  transliterateBanglaToEnglish,
+} from '../../../src/services/translator/nameTranslator';
+import {
   Doctor,
   DoctorFacility,
   Facility,
@@ -94,6 +98,79 @@ export default function EditSurveyScreen() {
   const [originalFacilityId, setOriginalFacilityId] = useState<string | null>(null);
   const [originalDoctorFacilityId, setOriginalDoctorFacilityId] = useState<string | null>(null);
   const [originalCreatedAt, setOriginalCreatedAt] = useState<string>(new Date().toISOString());
+
+  // Translation state for Doctor & Facility names
+  const [doctorNameEnTranslation, setDoctorNameEnTranslation] = useState('');
+  const [isTranslatingDoctor, setIsTranslatingDoctor] = useState(false);
+  const [facilityNameEnTranslation, setFacilityNameEnTranslation] = useState('');
+  const [isTranslatingFacility, setIsTranslatingFacility] = useState(false);
+
+  // Auto-generate translation suggestions when Bangla names change
+  useEffect(() => {
+    if (!doctorNameBn.trim() || !/[\u0980-\u09FF]/.test(doctorNameBn)) {
+      setDoctorNameEnTranslation('');
+      return;
+    }
+    const offlineTrans = transliterateBanglaToEnglish(doctorNameBn);
+    setDoctorNameEnTranslation(offlineTrans);
+
+    const timer = setTimeout(async () => {
+      try {
+        const fullTrans = await translateBanglaToEnglish(doctorNameBn);
+        if (fullTrans) {
+          setDoctorNameEnTranslation(fullTrans);
+        }
+      } catch {}
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [doctorNameBn]);
+
+  useEffect(() => {
+    if (!facilityNameBn.trim() || !/[\u0980-\u09FF]/.test(facilityNameBn)) {
+      setFacilityNameEnTranslation('');
+      return;
+    }
+    const offlineTrans = transliterateBanglaToEnglish(facilityNameBn);
+    setFacilityNameEnTranslation(offlineTrans);
+
+    const timer = setTimeout(async () => {
+      try {
+        const fullTrans = await translateBanglaToEnglish(facilityNameBn);
+        if (fullTrans) {
+          setFacilityNameEnTranslation(fullTrans);
+        }
+      } catch {}
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [facilityNameBn]);
+
+  const handleTranslateDoctorName = async () => {
+    if (!doctorNameBn.trim()) return;
+    setIsTranslatingDoctor(true);
+    try {
+      const translated = await translateBanglaToEnglish(doctorNameBn);
+      if (translated) {
+        setDoctorNameEn(translated);
+      }
+    } finally {
+      setIsTranslatingDoctor(false);
+    }
+  };
+
+  const handleTranslateFacilityName = async () => {
+    if (!facilityNameBn.trim()) return;
+    setIsTranslatingFacility(true);
+    try {
+      const translated = await translateBanglaToEnglish(facilityNameBn);
+      if (translated) {
+        setFacilityNameEn(translated);
+      }
+    } finally {
+      setIsTranslatingFacility(false);
+    }
+  };
 
   // Camera & Location hooks
   const camera = useCameraCapture(id || generateUUID());
@@ -594,6 +671,10 @@ export default function EditSurveyScreen() {
               value={doctorNameEn}
               onChangeText={setDoctorNameEn}
               ocrSuggestion={ocr.structuredData?.doctorNameEn}
+              translateSuggestion={doctorNameEnTranslation}
+              onApplyTranslateSuggestion={setDoctorNameEn}
+              onTranslatePress={doctorNameBn.trim() ? handleTranslateDoctorName : undefined}
+              isTranslating={isTranslatingDoctor}
             />
             <Input
               label="Qualifications"
@@ -651,6 +732,10 @@ export default function EditSurveyScreen() {
               value={facilityNameEn}
               onChangeText={setFacilityNameEn}
               ocrSuggestion={ocr.structuredData?.facilityNameEn}
+              translateSuggestion={facilityNameEnTranslation}
+              onApplyTranslateSuggestion={setFacilityNameEn}
+              onTranslatePress={facilityNameBn.trim() ? handleTranslateFacilityName : undefined}
+              isTranslating={isTranslatingFacility}
             />
             <Input
               label="Street Address"

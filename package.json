@@ -30,7 +30,7 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
     "react-native-web": "~0.21.4",
-    "react-native-webview": "^13.16.1",
+    "react-native-webview": "13.16.1",
     "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
@@ -47,10 +47,11 @@
     "web": "expo start --web",
     "test": "tsx -r ./test/setup.js --test test/**/*.test.ts",
     "lint": "expo lint",
-    "build:apk": "./build-apk.sh 2",
     "build": "./build-apk.sh",
+    "build:apk": "./build-apk.sh 2",
+    "build:apk:direct": "./build-apk.sh 3",
     "build:aab": "./build-apk.sh 1",
-    "build:cloud": "./build-apk.sh 3"
+    "build:cloud": "./build-apk.sh 4"
   },
   "private": true
 }
